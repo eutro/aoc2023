@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+sed 's/^$/,/' /dev/stdin
