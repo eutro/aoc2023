@@ -16,16 +16,19 @@ processed/Day%.v: processed src/Day%.v
 
 .SECONDEXPANSION:
 processed/DayIn%.v: processed input/day$$*.txt $$(wildcard src/Day$$*.prep)
-	echo -e "Require Import Day$*. Definition x := input" > $@
-	if [ -f src/Day$*.prep ]; \
-		then src/Day$*.prep < input/day$*.txt ; \
-		else cat input/day$*.txt ; \
+	@echo -e "Require Import Day$*." > $@
+	@echo -e "Definition x := input" >> $@
+	@if [ -f src/Day$*.prep ]; \
+	  then src/Day$*.prep < input/day$*.txt ; \
+	  else cat input/day$*.txt ; \
 	fi >> $@
-	echo -e ".\nCompute main x." >> $@
+	@echo -e ".\nCompute main x." >> $@
 
-input/day%.txt:
+input/day%.txt: input
 	@./fetch.sh $*
 
+input:
+	mkdir input
 processed:
 	mkdir processed
 out:

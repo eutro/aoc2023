@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-YEAR=2022
+YEAR=2023
 DIR="$(readlink -f "$(dirname "$0")")"
 cd "$DIR" || exit 1
 

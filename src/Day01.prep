@@ -1,2 +1,2 @@
 #!/usr/bin/sh
-sed 's/^$/,/' /dev/stdin
+sed -e 's/^/"/' -e 's/$/"/' /dev/stdin
