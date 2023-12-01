@@ -15,16 +15,19 @@ Definition rev_s (s : string) : string :=
   string_of_list_ascii (rev (list_ascii_of_string s)).
 
 Definition digit_map :=
-  [("0", 0); ("1", 1); ("2", 2); ("3", 3); ("4", 4);
+  [("1", 1); ("2", 2); ("3", 3); ("4", 4);
    ("5", 5); ("6", 6); ("7", 7); ("8", 8); ("9", 9)].
-
 Definition digit_map2 :=
   rev_append digit_map
     [("one", 1); ("two", 2); ("three", 3); ("four", 4); ("five", 5);
      ("six", 6); ("seven", 7); ("eight", 8); ("nine", 9)].
-
 Definition rev_dmap (l : list (string * N)) : list (string * N) :=
   map (fun '(s, n) => (rev_s s, n)) l.
+Inductive dmap : Set :=
+| Dmap : list (string * N) -> list (string * N) -> dmap.
+Definition make_dmap l := Dmap l (rev_dmap l).
+Definition dmap1 := make_dmap digit_map.
+Definition dmap2 := make_dmap digit_map2.
 
 Fixpoint prefix_assoc (l : list (string * N)) (s : string) : option N :=
   match l with
@@ -47,17 +50,17 @@ Fixpoint find_digit (dmap : list (string * N)) (s : string) : N :=
       end)
   end.
 
-Definition cval (dmap : list (string * N)) (s : string) : N :=
-  let d1 := find_digit dmap s in
-  let d2 := find_digit (rev_dmap dmap) (rev_s s) in
+Definition cval (dmap : dmap) (s : string) : N :=
+  let 'Dmap dm1 dm2 := dmap in
+  let d1 := find_digit dm1 s in
+  let d2 := find_digit dm2 (rev_s s) in
   d1 * 10 + d2.
 
 Definition sum_ns (xs : list N) : N := fold_left N.add xs 0.
-Definition part (ds : list (string * N)) (xs : list string) : N :=
-  sum_ns (map (cval ds) xs).
+Definition part (ds : dmap) (xs : list string) : N := sum_ns (map (cval ds) xs).
 
-Definition part1 (xs : list string) : N := part digit_map xs.
-Definition part2 (xs : list string) : N := part digit_map2 xs.
+Definition part1 (xs : list string) : N := part dmap1 xs.
+Definition part2 (xs : list string) : N := part dmap2 xs.
 Definition main (xs : list string) : (N * N) := (part1 xs, part2 xs).
 
 Definition example1 : list string := input
