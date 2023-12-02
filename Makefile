@@ -1,38 +1,43 @@
 .PHONY: today
 today:
-	@$(MAKE) day-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
+	@$(MAKE) --no-print-directory day-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
 
-.PHONY: day-%
-day-%:
-	$(MAKE) processed/DayIn$*.v processed/Day$*.v
-	touch processed/DayIn$*.v
-	$(MAKE) out/Day$*.vo out/DayIn$*.vo
+.PHONY: todaytop
+todaytop:
+	@$(MAKE) --no-print-directory daytop-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
 
-out/%.vo: processed/%.v out
-	coqc -R out Aoc2023 $< -o $@
-
-processed/Day%.v: processed src/Day%.v
-	cp src/Day$*.v processed/Day$*.v
+input/day%.txt:
+	@./fetch.sh $*
 
 .SECONDEXPANSION:
-processed/DayIn%.v: processed input/day$$*.txt $$(wildcard src/Day$$*.prep)
-	@echo -e "Require Import Day$*." > $@
-	@echo -e "Definition x := input" >> $@
+processed/DayIn%.v: input/day$$*.txt $$(wildcard src/Day$$*.prep)
+	@mkdir -p processed
+	@echo -e "Require Export Day$*." > $@
+	@echo -e "Definition inp := input" >> $@
 	@if [ -f src/Day$*.prep ]; \
 	  then src/Day$*.prep < input/day$*.txt ; \
 	  else cat input/day$*.txt ; \
 	fi >> $@
-	@echo -e ".\nCompute main x." >> $@
+	@echo -e ".\nTime Compute main inp." >> $@
 
-input/day%.txt: input
-	@./fetch.sh $*
+out/Day%.vo: src/Day%.v
+	@mkdir -p out
+	coqc -R out Aoc2023 $< -o $@
 
-input:
-	mkdir input
-processed:
-	mkdir processed
-out:
-	mkdir out
+.SECONDEXPANSION:
+out/DayIn%.vo: processed/DayIn$$*.v out/Day$$*.vo
+	coqc -R out Aoc2023 $< -o $@
 
+.PHONY: day-%
+day-%:
+	@touch -c processed/DayIn$*.v
+	@$(MAKE) --no-print-directory out/DayIn$*.vo
+
+.PHONY: daytop-%
+daytop-%:
+	@$(MAKE) --no-print-directory out/DayIn$*.vo
+	rlwrap coqtop -R out Aoc2023 -ri DayIn$*
+
+.PHONY:
 clean:
 	rm -rf input out processed

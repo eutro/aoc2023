@@ -1,2 +1,2 @@
-#!/usr/bin/sh
-sed -e 's/^/"/' -e 's/$/"/' /dev/stdin
+#!/usr/bin/env sh
+exec sed -e 's/^/"/' -e 's/$/"/'
