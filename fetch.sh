@@ -4,6 +4,11 @@ YEAR=2023
 DIR="$(readlink -f "$(dirname "$0")")"
 cd "$DIR" || exit 1
 
+if [ ! -f session.key ] ; then
+   echo "session.key missing"
+   exit 1
+fi
+
 KEY="$(cat session.key)"
 
 if [ -z "$1" ]
