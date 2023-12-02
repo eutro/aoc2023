@@ -6,43 +6,41 @@ Import ListNotations.
 #[global] Open Scope N_scope.
 #[global] Open Scope bool_scope.
 
-Declare Custom Entry game.
-Declare Custom Entry draw.
-Declare Custom Entry hand.
-
 Inductive color : Set :=
 | red : color
 | green : color
 | blue : color.
-
-Inductive draw : Set := Draw : (color -> N) -> draw.
-Inductive game : Set := GameOf : N -> list draw -> game.
-
-Definition draw_get col draw :=
-  let 'Draw f := draw in f col.
-
-Definition col_eq a b :=
+Definition col_eqb a b :=
   match (a, b) with
   | (red, red) | (green, green) | (blue, blue) => true
   | _ => false
   end.
 
+Inductive draw : Set := Draw : (color -> N) -> draw.
 Definition draw_leb l r :=
   let '(Draw lf, Draw rf) := (l, r) in
   (lf red <=? rf red) &&
     (lf green <=? rf green) &&
     (lf blue <=? rf blue).
+Definition draw_get col draw :=
+  let 'Draw f := draw in f col.
 
+Inductive game : Set := GameOf : N -> list draw -> game.
 Definition game_id gm := let 'GameOf id _ := gm in id.
+Definition game_hands gm := let 'GameOf _ hands := gm in hands.
 
 Fixpoint build_draw_ (col : color) (acc : N) (picks : list (color * N)) : N :=
   match picks with
   | [] => acc
   | (ncol, nn) :: tl =>
-      build_draw_ col (acc + if col_eq col ncol then nn else 0) tl
+      build_draw_ col (acc + if col_eqb col ncol then nn else 0) tl
   end.
 Definition build_draw (picks : list (color * N)) (col : color) : N :=
   build_draw_ col 0 picks.
+
+Declare Custom Entry game.
+Declare Custom Entry draw.
+Declare Custom Entry hand.
 
 Notation "'input' game .. games" :=
   (cons game .. (cons games nil) ..)
@@ -59,16 +57,14 @@ Notation "n color" :=
 
 Definition draw_possible_with (bag : draw) (hand : draw) : bool := draw_leb hand bag.
 Definition game_possible_with (bag : draw) (gm : game) : bool :=
-  let 'GameOf _ hands := gm in
-  forallb (draw_possible_with bag) hands.
+  forallb (draw_possible_with bag) (game_hands gm).
 
 Definition game_min_possible_ (gm : game) (col : color) :=
-  let 'GameOf _ hands := gm in
-  fold_left N.max (map (draw_get col) hands) 0.
+  fold_left N.max (map (draw_get col) (game_hands gm)) 0.
 Definition game_min_possible (gm : game) : draw := Draw (game_min_possible_ gm).
-
 Definition draw_power (d : draw) : N :=
   let 'Draw df := d in df red * df green * df blue.
+Definition game_power game : N := draw_power (game_min_possible game).
 
 Definition part1_bag (col : color) : N :=
   match col with
@@ -76,16 +72,12 @@ Definition part1_bag (col : color) : N :=
   | green => 13
   | blue => 14
   end.
-
 Definition collect_ids (inp : list game) : list N :=
-  let possible := filter (game_possible_with (Draw part1_bag)) inp in
-  map game_id possible.
-
+  map game_id (filter (game_possible_with (Draw part1_bag)) inp).
 Definition collect_powers (inp : list game) : list N :=
-  map (fun g => draw_power (game_min_possible g)) inp.
+  map game_power inp.
 
 Definition sum_ns ns := fold_left N.add ns 0.
-
 Definition main (inp : list game) : N * N :=
   (sum_ns (collect_ids inp), sum_ns (collect_powers inp)).
 
