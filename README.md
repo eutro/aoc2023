@@ -7,7 +7,7 @@ These are my solutions to [Advent of Code
 
 Building is done with GNU Make. The `day-NN` target compiles the
 source code for the day (if modified) and always recompiles the
-[input-generated code][#input]. A valid `session.key` (the `session`
+[input-generated code](#input). A valid `session.key` (the `session`
 cookie from the adventofcode.com site) must be provided for input
 fetching to work.
 
