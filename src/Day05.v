@@ -216,4 +216,5 @@ seeds: 79 14 55 13
 56 93 4
 .
 
-Compute main example.
+Example example_sols: main example = (35, 46).
+Proof. simpl. reflexivity. Qed.
