@@ -20,14 +20,6 @@ Notation "start '+to' endd" :=
   (start += (endd - start))
     (at level 80).
 
-Definition nelist (A : Type) : Type := (A * list A).
-Definition nelist_to_list {A : Type} (nl : nelist A) : list A :=
-  let '(x, xtl) := nl in x :: xtl.
-Definition nehd {A : Type} : nelist A -> A := fst.
-Notation "hd '::+' tl" :=
-  (hd, (nelist_to_list tl))
-    (at level 80).
-
 Declare Custom Entry ilist.
 Declare Custom Entry mappings.
 Declare Custom Entry mapping.
