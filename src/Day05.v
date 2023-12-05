@@ -61,7 +61,8 @@ Definition intersect (a b : range) : option range * list range :=
   let '(aend, bend) := (astart + alen, bstart + blen) in
   match N.compare astart bstart with
   | Lt => match N.compare aend bstart with
-          | Lt | Eq => (None, [a]) (* [a a)<=[b b) *)
+          (* [a a)<=[b b) *)
+          | Lt | Eq => (None, [a])
           | Gt => match N.compare aend bend with
                   (* [a [b a)<=b) *)
                   | Lt | Eq => (Some (bstart +to aend), [astart +to bstart])
