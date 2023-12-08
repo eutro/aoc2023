@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec sed -E -e 's/[0-9TJQKA]+/"\0"/'

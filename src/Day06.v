@@ -13,8 +13,10 @@ Notation "'input' 'Time' ':' time .. times 'Distance' ':' dist .. dists" :=
 
 Definition race_time (duration hold : N) : N := (duration - hold) * hold.
 
-Definition div_ceil (x y : N) : N := (x + y - 1) / y.
-Infix "/+" := div_ceil (at level 40) : N_scope.
+Definition best_race_hold (duration : N) : N := duration / 2.
+
+Definition halve_floor (x : N) : N := x / 2.
+Definition halve_ceil (x : N) : N := x - x / 2.
 Definition race_bounds (duration target : N) : N * N :=
   (* solve (duration - x) * x > target
    => -x^2 + duration * x - target > 0
@@ -24,10 +26,10 @@ Definition race_bounds (duration target : N) : N * N :=
    => x ∈ (duration/2 ±, sqrt(duration^2/4 - target))
    => 2x ∈ (duration ±, sqrt(duration^2 - 4target)) *)
   (* we use target + 1 and >= instead *)
-  let det := duration * duration - 4 * (target + 1) in
+  let det := N.square duration - 4 * (target + 1) in
   let sqrt_det (* lower bound of sqrt *) := N.sqrt det in
   let '(mn2, mx2) := (duration - sqrt_det, duration + sqrt_det) in
-  (mn2 /+ 2, mx2 / 2).
+  (halve_floor mn2, halve_ceil mx2).
 
 Definition race_cways (race : N * N) : N :=
   let '(time, dist) := race in
