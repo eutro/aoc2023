@@ -199,7 +199,7 @@ End Part2HandOrd.
 Declare Custom Entry hand.
 Notation "'input' hand .. hands" :=
   (cons hand .. (cons hands nil) ..)
-    (at level 200, hand custom hand at level 2).
+    (at level 200, hand custom hand at level 2, only parsing).
 Notation "handv bid" :=
   (handv % string, bid)
     (in custom hand at level 2, handv constr at level 1, bid constr at level 1).
