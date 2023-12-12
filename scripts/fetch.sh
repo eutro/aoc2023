@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 YEAR=2023
-DIR="$(readlink -f "$(dirname "$0")")"
+DIR="$(readlink -f "$(dirname "$0")"/..)"
 cd "$DIR" || exit 1
 
 if [ ! -f session.key ] ; then
