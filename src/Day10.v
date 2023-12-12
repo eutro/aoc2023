@@ -8,7 +8,7 @@ Export StringSyntax ListNotations.
 #[global] Open Scope nat_scope.
 #[global] Open Scope Z_scope.
 
-Module PosnOrder := PairOrderedType Z Z.
+Module PosnOrder := PairOrderedType Z_as_OT Z_as_OT.
 Module Backport_PosnOrder := Backport_OT PosnOrder.
 Module PosnMap := FMapAVL.Make Backport_PosnOrder.
 Definition posn : Type := PosnMap.E.t.

@@ -1,32 +1,24 @@
-.PHONY: today
-today:
-	@$(MAKE) --no-print-directory day-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
+KNOWNTARGETS := _CoqProject Makefile.coq clean default
+KNOWNFILES := _CoqProject.in Makefile
 
-.PHONY: todaytop
-todaytop:
-	@$(MAKE) --no-print-directory daytop-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
+default:
+	@+$(MAKE) --no-print-directory today
 
-.PHONY: day-%
-day-%:
-	@touch -c processed/DayIn$*.v
-	@$(MAKE) --no-print-directory out/DayIn$*.vo
+_CoqProject: _CoqProject.in scripts/gen_coqproject.sh
+	@scripts/gen_coqproject.sh > $@
 
-.PHONY: daytop-%
-daytop-%:
-	@$(MAKE) --no-print-directory out/DayIn$*.vo
-	rlwrap coqtop -R out Aoc2023 -ri DayIn$*
+Makefile.coq: _CoqProject
+	@$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq
 
-.PHONY:
-clean:
-	rm -rf input out processed
+clean: Makefile.coq
+	@+$(MAKE) --no-print-directory -f Makefile.coq cleanall
+	rm -f Makefile.coq Makefile.coq.conf
+	rm -rf input processed
 
-.SECONDEXPANSION:
+invoke-coqmakefile: Makefile.coq
+	@+$(MAKE) --no-print-directory -f Makefile.coq $(filter-out $(KNOWNTARGETS),$(MAKECMDGOALS))
 
-include Makefile.generate
+.PHONY: invoke-coqmakefile $(KNOWNFILES)
 
-out/Day%.vo: src/Day%.v
-	@mkdir -p out
-	coqc -R out Aoc2023 $< -o $@
-
-out/DayIn%.vo: processed/DayIn%.v out/Day%.vo
-	coqc -R out Aoc2023 $< -o $@
+%: invoke-coqmakefile
+	@true

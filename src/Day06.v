@@ -29,7 +29,7 @@ Definition race_bounds (duration target : N) : N * N :=
   let det := N.square duration - 4 * (target + 1) in
   let sqrt_det (* lower bound of sqrt *) := N.sqrt det in
   let '(mn2, mx2) := (duration - sqrt_det, duration + sqrt_det) in
-  (halve_floor mn2, halve_ceil mx2).
+  (halve_ceil mn2, halve_floor mx2).
 
 Definition race_cways (race : N * N) : N :=
   let '(time, dist) := race in

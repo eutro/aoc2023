@@ -1,5 +1,14 @@
 session.key
 /input/
-/out/
 /processed/
+.coq-native/
 *~
+_CoqProject
+Makefile.coq
+Makefile.coq.conf
+.Makefile.coq.d
+*.vo
+*.vos
+*.vok
+*.aux
+*.glob

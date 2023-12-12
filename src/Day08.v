@@ -55,19 +55,13 @@ Definition step_node (m : node_map) (n : node) (d : direction) : option node :=
   | None => None
   end.
 
-Inductive success : Set := Ok | OutOfFuel | MissingNode.
-Definition unwrap_success {A : Type} (s : success * A) : option A :=
-  match s with
-  | (Ok, x) => Some x
-  | _ => None
-  end.
 Fixpoint step_until_
   (m : node_map) (target : node -> bool) (all_insns : list direction)
   (fuel : nat) (insns : list direction)
-  (trail : list node) (src : node) : success * (list node * list direction) :=
+  (trail : list node) (src : node) : option (list node * list direction) :=
   let trail' := src::trail in
   match fuel with
-  | O => (OutOfFuel, (trail, insns))
+  | O => None
   | S fuel' =>
       let (dir, insns') :=
         match insns with
@@ -76,17 +70,17 @@ Fixpoint step_until_
         end in
       match step_node m src dir with
       | Some src' =>
-          if target src' then (Ok, (src'::trail', insns')) else
+          if target src' then Some (src'::trail', insns') else
             step_until_ m target all_insns
               fuel' insns' trail' src'
-      | None => (MissingNode, (trail', insns'))
+      | None => None
       end
     end.
 Definition step_until m dst src insns fuel :=
   step_until_ m dst insns fuel insns [] src.
 
 Definition find_loop m insns fuel src : N :=
-  match unwrap_success (step_until m node_endb src insns fuel) with
+  match step_until m node_endb src insns fuel with
   | Some (looper::trail_butfirst as trail, remaining_insns) =>
       (* the input makes this too easy, further loops happen to be the
          same length, and no other terminals are reached *)
@@ -102,16 +96,17 @@ Definition find_loop m insns fuel src : N :=
 
 #[global] Open Scope string_scope.
 
-Definition default_fuel : nat := 100000.
+Definition default_fuel : nat := N.to_nat 100000%N.
 
 Definition part1 (inp : list direction * node_map) :=
-  let '(success, (path, _)) :=
-    step_until (snd inp)
-      (NodeOrder.eqb (node_of_string "ZZZ"))
-      (node_of_string "AAA")
-      (fst inp)
-      default_fuel in
-  unwrap_success (success, N.of_nat (List.length path) - 1).
+  match step_until (snd inp)
+          (NodeOrder.eqb (node_of_string "ZZZ"))
+          (node_of_string "AAA")
+          (fst inp)
+          default_fuel with
+  | Some (path, _) => N.of_nat (List.length path) - 1
+  | None => 0
+  end.
 
 Definition part2 (inp : list direction * node_map) :=
   let all_nodes := List.map fst (NodeMap.elements (snd inp)) in
@@ -149,5 +144,7 @@ Definition example2 := input
 "ZZZ" = ("ZZZ", "ZZZ")
 .
 
-Compute part1 example1.
-Compute part1 example2.
+Example sample1: part1 example1 = 2.
+Proof. reflexivity. Qed.
+Example sample2: part1 example2 = 6.
+Proof. reflexivity. Qed.

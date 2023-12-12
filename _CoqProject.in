@@ -1,0 +1,3 @@
+-R src Aoc2023
+-R processed Aoc2023
+-arg "-w -native-compiler-disabled"

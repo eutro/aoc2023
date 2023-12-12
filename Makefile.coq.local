@@ -1,0 +1,31 @@
+input/day%.txt:
+	@scripts/fetch.sh $*
+
+.SECONDEXPANSION:
+processed/DayIn%.v: input/day%.txt $$(wildcard src/Day$$*.prep)
+	@mkdir -p processed
+	@echo -e "Require Export Day$*." > $@
+	@echo -e "Definition inp := input" >> $@
+	@if [ -f src/Day$*.prep ]; \
+	  then src/Day$*.prep < input/day$*.txt ; \
+	  else cat input/day$*.txt ; \
+	fi >> $@
+	@echo -e ".\nTime Eval native_compute in main inp." >> $@
+
+.PHONY: today
+today:
+	@$(MAKE) --no-print-directory day-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
+
+.PHONY: todaytop
+todaytop:
+	@$(MAKE) --no-print-directory daytop-"$$(printf "%02d" "$$(date +%d | sed 's/^0*//')")"
+
+.PHONY: day-%
+day-%:
+	@touch -c processed/DayIn$*.v
+	@$(MAKE) --no-print-directory processed/DayIn$*.vo
+
+.PHONY: daytop-%
+daytop-%:
+	@$(MAKE) --no-print-directory processed/DayIn$*.vo
+	rlwrap coqtop -R src Aoc2023 -R processed Aoc2023 -ri DayIn$*
