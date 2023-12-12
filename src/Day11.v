@@ -49,13 +49,6 @@ Definition find_minmax (ps : list posn) : posn * posn :=
   | [] => ((0, 0), (0, 0))
   end.
 
-Definition find_nonempty (inp : inp_grid) : int_set * int_set :=
-  PosnMap.fold
-    (fun '(x, y) _ '(xs, ys) =>
-       (IntMap.add x tt xs,
-        IntMap.add y tt ys))
-    inp (IntMap.empty unit, IntMap.empty unit).
-
 Fixpoint range_fold_ {A : Type} (f : A -> N -> A) (x : N) (rem : nat) (acc : A) : A :=
   match rem with
   | O => acc
@@ -74,28 +67,37 @@ Definition psum_range (ints : int_set) (mn mx : N) : int_psum :=
          mn mx
          (IntMap.empty N, 0)).
 
+Definition find_nonempty (inp : inp_grid) : int_psum * int_psum :=
+  let as_sets :=
+    PosnMap.fold
+      (fun '(x, y) _ '(xs, ys) =>
+         (IntMap.add x tt xs,
+           IntMap.add y tt ys))
+      inp (IntMap.empty unit, IntMap.empty unit) in
+  let '((mn_x, mn_y), (mx_x, mx_y)) :=
+    find_minmax (List.map fst (PosnMap.elements inp)) in
+  (psum_range (fst as_sets) mn_x mx_x,
+   psum_range (snd as_sets) mn_y mx_y).
+
 Section CountDists.
   Variable growth : N.
 
-  Definition add_if_empty (nonempty : int_set) (acc : N) (pos : N) : N :=
-    if IntMap.mem pos nonempty
-    then acc
-    else acc + growth.
-  Definition dist_between (nonempties : int_set * int_set) (lhs rhs : posn) : N :=
+  Definition dist_between (nonempties : int_psum * int_psum) (lhs rhs : posn) : N :=
     let f (side : forall A, A * A -> A) :=
       let lp := side N lhs in
       let rp := side N rhs in
-      range_fold
-        (add_if_empty (side int_set nonempties)) lp rp
-        (N.max lp rp - N.min lp rp) in
+      let psum := side int_psum nonempties in
+      let '(mn_p, mx_p) := if rp <? lp then (rp, lp) else (lp, rp) in
+      let find_psum p := match IntMap.find p psum with Some x => x | None => 0 end in
+      (find_psum mx_p - find_psum mn_p) * (N.pred growth) + (mx_p - mn_p) in
     f (fun _ => fst) + f (fun _ => snd).
 
-  Fixpoint all_dists_between1 (acc : N) (nonempties : int_set * int_set) (first_elt : posn) (elts : list posn) : N :=
+  Fixpoint all_dists_between1 (acc : N) (nonempties : int_psum * int_psum) (first_elt : posn) (elts : list posn) : N :=
     match elts with
     | [] => acc
     | elt :: elts' => all_dists_between1 (acc + dist_between nonempties first_elt elt) nonempties first_elt elts'
     end.
-  Fixpoint all_dists_between0 (acc : N) (nonempties : int_set * int_set) (elts : list posn) : N :=
+  Fixpoint all_dists_between0 (acc : N) (nonempties : int_psum * int_psum) (elts : list posn) : N :=
     match elts with
     | [] => acc
     | elt :: elts' => all_dists_between0 (all_dists_between1 acc nonempties elt elts') nonempties elts'
@@ -105,7 +107,8 @@ Section CountDists.
 End CountDists.
 
 Definition main (inp : inp_grid) :=
-  (all_dists_between (N.pred 1000000) inp).
+  (all_dists_between 2 inp,
+   all_dists_between 1000000 inp).
 
 Notation "'input' line .. lines" :=
   (build_map (cons line .. (cons lines nil) ..))
@@ -126,4 +129,7 @@ Definition example := input
 "#...#....."
 .
 
-Compute main example.
+Example sample1: all_dists_between 2 example = 374.
+Proof. reflexivity. Qed.
+Example sample2: List.map (fun i => all_dists_between i example) [10; 100] = [1030; 8410].
+Proof. reflexivity. Qed.
