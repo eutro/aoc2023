@@ -34,28 +34,22 @@ Definition head_matches := head_matches_ O.
 Definition get_valid_steps (s : list status) (gs : list N) : list (option nat) :=
   List.map (fun g => head_matches s (N.to_nat g)) gs.
 
-Fixpoint count_valid_groupings_ (prev_not_damaged : N) (s : list status) (gs : list N) : list (list N) :=
+Fixpoint count_valid_groupings_ (s : list status) (gs : list N) : list (list N) :=
   match s with
   | [] => [List.map (fun _ => 0) gs ++ [1]]
   | fc::s' =>
-      let not_damaged := if fc is Damaged then 0 else 1 in
-      let dp := count_valid_groupings_ not_damaged s' gs in
+      let dp := count_valid_groupings_ s' gs in
       let next_col := List.hd [] dp in
-      let tl_can_be_empty :=
-        if nth (List.length gs) next_col 0 =? 1 (* next col can be empty *)
-        then not_damaged (* can still be empty *)
-        else 0 in
-      let valid_steps :=
-        (*if prev_not_damaged =? 1
-        then*) get_valid_steps s gs
-        (*else List.map (fun _ => None) gs*) in
+      let is_damaged := if fc is Damaged then true else false in
+      let next_can_be_empty := List.last next_col 0 =? 1 in
+      let tl_can_be_empty := if negb is_damaged && next_can_be_empty then 1 else 0 in
+      let valid_steps := get_valid_steps s gs in
       let step_all :=
         List.fold_left
           (fun '(acc, i) is_valid =>
              let next_cnt :=
-               if not_damaged =? 1
-               then nth i next_col 0
-               else 0 (* if it is damaged we cannot just ignore it *) in
+               if is_damaged then 0 (* we cannot just ignore it *)
+               else nth i next_col 0 in
              let skip_cnt :=
                match is_valid with
                | None => 0
@@ -71,7 +65,7 @@ Fixpoint count_valid_groupings_ (prev_not_damaged : N) (s : list status) (gs : l
   end.
 Definition count_valid_groupings (r : spring_rec) :=
   let '(mkrec s gs) := r in
-  let all_groupings := count_valid_groupings_ 1 s gs in
+  let all_groupings := count_valid_groupings_ s gs in
   hd 0 (hd [] all_groupings).
 
 Definition unfold_rec (r : spring_rec) : spring_rec :=

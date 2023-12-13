@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec sed -e 's/^/"/' -e 's/$/"/' -e 's/^""$/;/g'

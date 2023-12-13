@@ -54,10 +54,11 @@ Fixpoint range_fold_ {A : Type} (f : A -> N -> A) (x : N) (rem : nat) (acc : A) 
   | O => acc
   | S rem' => range_fold_ f (N.succ x) rem' (f acc x)
   end.
+
+Definition minmax (a b : N) : N * N := (N.min a b, N.max a b).
 Definition range_fold {A : Type} (f : A -> N -> A) (lhs rhs : N) (i : A) : A :=
-  let mn := N.min lhs rhs in
-  let mx := N.max lhs rhs + 1 in
-  range_fold_ f mn (N.to_nat (mx - mn)) i.
+  let '(mn, mx) := minmax lhs rhs in
+  range_fold_ f mn (N.to_nat (mx + 1 - mn)) i.
 
 Definition psum_range (ints : int_set) (mn mx : N) : int_psum :=
   fst (range_fold
@@ -66,6 +67,15 @@ Definition psum_range (ints : int_set) (mn mx : N) : int_psum :=
             (IntMap.add x sum ip, sum'))
          mn mx
          (IntMap.empty N, 0)).
+
+Definition count_between (ints : int_set) (lhs rhs : N) : N :=
+  range_fold (fun x i => if IntMap.mem x ints then x else x + 1) lhs rhs 0.
+Definition psum_between (psum : int_psum) (lhs rhs : N) : N :=
+  let '(mn, mx) := minmax lhs rhs in
+  match (IntMap.find mn psum, IntMap.find mx psum) with
+  | (Some mnv, Some mxv) => mxv - mnv
+  | _ => 0
+  end.
 
 Definition find_nonempty (inp : inp_grid) : int_psum * int_psum :=
   let as_sets :=
