@@ -51,19 +51,20 @@ Section Reflection.
   Definition check_reflection (refl grid : list (list ascii)) : bool :=
     check_reflection_ smudges refl grid.
 
-  Fixpoint find_reflection_ (i : N) (refl grid : list (list ascii)) : option N :=
+  Fixpoint find_reflection_ (refl grid : list (list ascii)) : option N :=
     match (refl, grid) with
     | ([], _) | (_, []) => None
     | (_, row::grid') =>
         if check_reflection refl grid
-        then Some i (*N.of_nat (List.length refl)*)
-        else find_reflection_ (N.succ i) (row::refl) grid'
+        then Some (N.of_nat (List.length refl))
+        else find_reflection_ (row::refl) grid'
     end.
   Definition find_reflection (grid : list (list ascii)) : option N :=
     match grid with
-    | hd :: tl => find_reflection_ 1 [hd] tl
+    | hd :: tl => find_reflection_ [hd] tl
     | [] => None
     end.
+
   Definition find_either_reflection (grid : list (list ascii)) : option mirror :=
     match find_reflection grid with
     | Some horiz => Some (m_horiz horiz)
@@ -114,4 +115,5 @@ Definition example := input
 "#....#..#"
 .
 
-Compute main example.
+Example sample: main example = (405, 400).
+Proof. reflexivity. Qed.
