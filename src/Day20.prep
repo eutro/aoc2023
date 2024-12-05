@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec sed -E -e 's/[a-z]+/"\0"/g'
